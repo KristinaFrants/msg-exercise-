@@ -8,6 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from models import db
+from send_sms import send_msg
 #from models import Person
 
 app = Flask(__name__)
@@ -17,6 +18,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
+seed=os.environ.get('KACCOUT_SEED')
+token=os.environ.get('KACCOUNT_TOKEN')
+
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
@@ -36,6 +40,21 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+@app.route('/new', methods=['GET'])
+def handle_get():
+    send_msg()
+
+    return jsonify({'msg': 'message sent'}), 200
+
+@app.route('/next', methods=['POST'])
+def handle_post():
+    body = request.get_json()
+    send_msg(body['message'])
+
+    return jsonify({'msg': 'message sent'}), 200
+
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
